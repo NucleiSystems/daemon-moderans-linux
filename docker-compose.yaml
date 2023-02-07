@@ -1,0 +1,43 @@
+volumes:
+  data:
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_PASSWORD=postgrespw
+    ports:
+      - 5432:5432
+    volumes:
+      - data:/var/lib/postgresql
+
+  nuclei_backend:
+    # image: ronnytec/nuclei:latest
+    build:
+      context: .
+      dockerfile: backend.dockerfile
+    ports:
+        - 8000:8000
+    user: root
+    privileged: true
+
+    
+  redis-server:
+    image: redis:latest
+    ports:
+      - 6379:6379
+  ipfs:
+    image: ipfs/kubo:latest
+    restart: unless-stopped
+    ports:
+      - 4001:4001/tcp
+      - 4001:4001/udp
+      
+      # The following ports only listen on the loopback interface, so are not remotely reachable by default.
+      # If you want to override these or add more ports, see https://docs.docker.com/compose/extends/ .
+      
+      # API port, which includes admin operations, so you probably don't want this remotely accessible.
+      - 127.0.0.1:5001:5001
+      
+      # HTTP Gateway
+      - 127.0.0.1:8080:8080
