@@ -46,7 +46,7 @@ class CompressionImpl:
 
         file_uuid: str = file_path[temp_file_index:][9:-4]
 
-        return f"{parsed_file_path}\compressed_temp{file_uuid}"
+        return f"{parsed_file_path}/compressed_temp{file_uuid}"
 
     def commit_to_ipfs(self, file, filename: str, user, db) -> str:
 

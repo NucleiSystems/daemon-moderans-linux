@@ -38,8 +38,8 @@ async def upload(
         cid: str = produce_cid(file, file_name)
         if not cid:
             raise HTTPException(status_code=400, detail="Failed to produce CID")
-        hash: str = generate_hash(cid)
-        if not hash:
+        _hash: str = generate_hash(cid)
+        if not _hash:
             raise HTTPException(status_code=400, detail="Failed to generate hash")
         user: User = current_user
         if not user:
@@ -68,7 +68,7 @@ async def upload(
 
     return {
         "cid": cid,
-        "hash": hash,
+        "hash": _hash,
         "user_id": current_user.username,
         "status": "success",
     }
