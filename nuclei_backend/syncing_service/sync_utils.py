@@ -46,9 +46,9 @@ class UserDataExtraction:
         self.user_data = get_user_cids(self.user_id, self.db)
         self.file_bytes = []
         self.cids = cids
-        self.ipget_path = Path(__file__).parent / "utils\ipget.exe"
+        self.ipget_path = Path(__file__).parent / "utils/ipget"
         self.new_folder = (
-            f"{Path(__file__).parent}\FILE_PLAYING_FIELD\{self.session_id}"
+            f"{Path(__file__).parent}/FILE_PLAYING_FIELD/{self.session_id}"
         )
 
     def download_file_ipfs(self):
@@ -59,7 +59,7 @@ class UserDataExtraction:
                 try:
                     file = f"{self.ipget_path} --node=local {_.file_cid} -o {_.file_name} --progress=true"
 
-                    subprocess.Popen(str(f"{file}"))
+                    os.system(str(f"{file}"))
                     print(
                         f"Downloading {_.file_name} - {_.file_cid} - {self.session_id}"
                     )
@@ -96,7 +96,7 @@ class UserDataExtraction:
         with contextlib.suppress(PermissionError):
             os.chdir(pathlib.Path(self.new_folder).parent)
 
-            await shutil.rmtree(
+            shutil.rmtree(
                 pathlib.Path(self.new_folder),
                 ignore_errors=False,
             )

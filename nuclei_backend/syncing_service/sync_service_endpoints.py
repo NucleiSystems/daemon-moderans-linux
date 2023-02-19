@@ -56,7 +56,6 @@ async def dispatch_all(user: User = Depends(get_current_user), db=Depends(get_db
             if scheduler_controller.check_scheduler():
                 scheduler_controller.start_scheduler()
 
-            time.sleep(10)
 
         except Exception as e:
             raise e
@@ -66,7 +65,7 @@ async def dispatch_all(user: User = Depends(get_current_user), db=Depends(get_db
         try:
             await files.cleanup()
         except Exception as e:
-            print(e)
+            print("before the cleanup await",e)
         file_session_cache.activate_file_session()
 
     return {
