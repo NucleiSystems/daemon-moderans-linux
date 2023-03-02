@@ -34,7 +34,6 @@ def docker_refresher():
         stderr=subprocess.STDOUT,
     )
     print(pusher)
-
     # push the image
     push_command = "docker push ronnytec/nuclei:latest"
     subprocess.call(push_command, shell=True)

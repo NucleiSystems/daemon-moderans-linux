@@ -13,7 +13,7 @@ SQLALCHEMY_DATABASE_URI3 = "postgresql://postgres:postgrespw@host.docker.interna
 
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URI1,
+    SQLALCHEMY_DATABASE_URI2,
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
