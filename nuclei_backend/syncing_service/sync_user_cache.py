@@ -13,10 +13,10 @@ import base64
 class RedisController:
     def __init__(self, user):
         DOCKER_CONN = "redis://redis:6379"
-        DEV_DOCKER = "redis://default:redispw@localhost:32768"
+        DEV_DOCKER = "redis://default:redispw@localhost:6379/0"
         DEV_CONN = "redis://default:redispw@localhost:6379"
         self.redis_connection = redis.Redis().from_url(
-            url=DEV_DOCKER, decode_responses=True, db=0
+            url=DOCKER_CONN, decode_responses=True, db=0
         )
         self.user = user
 
