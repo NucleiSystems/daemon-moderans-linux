@@ -16,13 +16,15 @@ def ip_addy():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    # logging.log(1, ip_addy())
-    # print(ip_addy())
+    ssl_keyfile_path = pathlib.Path("localhost+2-key.pem")
+    ssl_certfile_path = pathlib.Path("localhost+2.pem")
     uvicorn.run(
         "nuclei_backend:app",
         host="0.0.0.0",
-        port=8080,
+        port=80,
         workers=4,
         reload=True,
         use_colors=True,
+        ssl_keyfile=ssl_keyfile_path,
+        ssl_certfile=ssl_certfile_path,
     )

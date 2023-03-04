@@ -24,4 +24,4 @@ EXPOSE 8000
 ENV LISTEN_PORT=8000
 RUN /app/nuclei_backend/storage_service/ipfs init
 
-CMD ["uvicorn", "nuclei_backend:app", "--host=0.0.0.0", "--port=8000", "--workers=4"]
+CMD ["uvicorn", "nuclei_backend:app", "--host=0.0.0.0", "--port=8000", "--workers=4", "--ssl-keyfile=localhost+2-key.pem", "--ssl-certfile=localhost+2.pem"]

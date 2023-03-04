@@ -1,3 +1,5 @@
+version: '3'
+
 volumes:
   data:
 
@@ -11,17 +13,6 @@ services:
     volumes:
       - data:/var/lib/postgresql
 
-  nuclei_backend:
-    # image: ronnytec/nuclei:latest
-    build:
-      context: .
-      dockerfile: Dockerfile.app
-    ports:
-        - 8000:8000
-    user: root
-    privileged: true
-
-    
   redis:
     image: redis:latest
     volumes:
@@ -37,22 +28,70 @@ services:
       - --mount
       - --routing=dhtclient
       - --enable-namesys-pubsub
-    privileged: true    # not needed in theory, adding this makes no difference though
+    privileged: true
     cap_add:
-        - SYS_ADMIN
+      - SYS_ADMIN
     security_opt:
-        - apparmor:unconfined
+      - apparmor:unconfined
     devices:
-        - /dev/fuse:/dev/fuse
+      - /dev/fuse:/dev/fuse
     environment:
       - IPFS_PROFILE=server
       - IPFS_PATH=/ipfsdata
     ports:
-        - 8080:8080   # public gateway
-        - 4001:4001   # public swarm UDP
-        - 5001:5001   # private API
+      - 8080:8080
+      - 4001:4001
+      - 5001:5001
     volumes:
-        - ./data/ipfs:/ipfsdata
-        - /etc/fuse.conf:/etc/fuse.conf:ro
-        - ./data/ipfs:/data/ipfs
-        - ./data/export:/export
+      - ./data/ipfs:/ipfsdata
+      - /etc/fuse.conf:/etc/fuse.conf:ro
+      - ./data/ipfs:/data/ipfs
+      - ./data/export:/export
+
+  traefik:
+    image: traefik:v2.5
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+    command:
+      - "--log.level=DEBUG"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=Rohaanerodasahmed@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+    restart: unless-stopped
+
+  nuclei_backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nuclei-backend.rule=Host(`nucleibackend.systems`)"
+      - "traefik.http.routers.nuclei-backend.entrypoints=websecure"
+      - "traefik.http.routers.nuclei-backend.tls.certresolver=myresolver"
+      - "traefik.http.routers.nuclei-backend.tls=true"
+
+    expose:
+      - 8000
+    ports:
+      - 8000:8000
+
+    environment:
+      - "DATABASE_URL=postgresql://postgres:postgrespw@postgres:5432/postgres"
+      - "REDIS_URL=redis://redis:6379"
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    volumes:
+      - data:/app/data
