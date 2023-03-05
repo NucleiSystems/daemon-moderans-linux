@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 volumes:
   data:
@@ -22,9 +22,9 @@ services:
 
   ipfs:
     image: ipfs/go-ipfs:latest
-    command: 
-      - daemon 
-      - --migrate=true 
+    command:
+      - daemon
+      - --migrate=true
       - --mount
       - --routing=dhtclient
       - --enable-namesys-pubsub
@@ -57,17 +57,40 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./letsencrypt:/letsencrypt"
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.traefik-dashboard.loadbalancer.server.port=8001
+      - traefik.http.routers.traefik-dashboard-http.entrypoint.http
+      - traefik.http.routers.traefik-dashboard-http.rule=Host('nucliebackend.systems')
+      - traefik.docker.network=traefik.public
+      - traefik.http.routers.traefik-dashboard-https.entrypoint=https
+      - traefik.http.routers.traefik-dashboard-https.rule=Host('nucliebackend.systems')
+      - traefik.http.routers.traefik-dashboard-https.tls=true
+      - traefik.http.routers.traefik-dashboard-https.tls.certificatesresolvers=myresolver
+
+      - traefik.http.routers.traefik-dashboard-https.service=api@internal
+
+      - traefik.http.middleware.https-redirect.redirect.redirectscheme.scheme=https
+      - traefik.http.middleware.https-redirect.redirect.redirectscheme.permanent=true
+      - traefik.http.routers.traefik-dashboard-http.middlewares=https-redirect
+      - traefik.http.middlewares.admin-auth.basicauth.users=string:string
+
+      - traefik.http.routers.traefik-dashboard-https.middleware=admin-auth
+
     command:
       - "--log.level=DEBUG"
+      - "--accesslog"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.https.address=:443"
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.myresolver.acme.email=Rohaanerodasahmed@gmail.com"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      # - "certificatesresolvers.myresolver.acme.tlschallenge=true"
+      # - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      # - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - --api
     restart: unless-stopped
 
   nuclei_backend:
@@ -75,11 +98,16 @@ services:
       context: .
       dockerfile: Dockerfile.app
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.nuclei-backend.rule=Host(`nucleibackend.systems`)"
-      - "traefik.http.routers.nuclei-backend.entrypoints=websecure"
-      - "traefik.http.routers.nuclei-backend.tls.certresolver=myresolver"
-      - "traefik.http.routers.nuclei-backend.tls=true"
+      - traefik.enable=true
+      - traefik.http.services.nuclei-backend.loadbalancer.server.port=80
+      - traefik.http.routers.nuclei-backend.entrypoints=http
+      - traefik.http.routers.nuclei-backend.rule=Host(`nucleibackend.systems`)
+      - traefik.docker.network=traefik.public
+      - traefik.http.routers.nuclei-backend.tls=true
+      - traefik.http.routers.nuclei-backend.tls.certresolver=myresolver
+      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=true
+      - traefik.http.routers.nuclei-backend.middlewares=https-redirect
 
     expose:
       - 8000
