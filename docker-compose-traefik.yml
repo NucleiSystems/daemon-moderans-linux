@@ -1,0 +1,56 @@
+version: "3"
+
+volumes:
+  data:
+
+services:
+  traefik:
+    image: traefik:v2.9.8
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+      # - traefik-public-certificates:/letsencrypt
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.traefik-dashboard.loadbalancer.server.port=8001
+      - traefik.http.routers.traefik-dashboard-http.entrypoint.http
+      - traefik.http.routers.traefik-dashboard-http.rule=Host('nucliebackend.systems')
+      - traefik.docker.network=traefik.public
+      - traefik.http.routers.traefik-dashboard-https.entrypoint=https
+      - traefik.http.routers.traefik-dashboard-https.rule=Host('nucliebackend.systems')
+      - traefik.http.routers.traefik-dashboard-https.tls=true
+      - traefik.http.routers.traefik-dashboard-https.tls.certificatesresolvers=myresolver
+
+      - traefik.http.routers.traefik-dashboard-https.service=api@internal
+
+      - traefik.http.middleware.https-redirect.redirect.redirectscheme.scheme=https
+      - traefik.http.middleware.https-redirect.redirect.redirectscheme.permanent=true
+      - traefik.http.routers.traefik-dashboard-http.middlewares=https-redirect
+      - traefik.http.middlewares.admin-auth.basicauth.users=string:string
+
+      - traefik.http.routers.traefik-dashboard-https.middleware=admin-auth
+
+    command:
+      - "--log.level=DEBUG"
+      - "--accesslog"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.https.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=Rohaanerodasahmed@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      # - "certificatesresolvers.myresolver.acme.tlschallenge=true"
+      # - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      # - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - --api
+    restart: always
+    networks:
+      - traefik-public
+networks:
+  traefik-public:
+    external: true

@@ -35,7 +35,6 @@ def create_access_token(
     expire_delta: Union[int, timedelta]
     | None = UsersConfig.ACCESS_TOKEN_EXPIRE_MINUTES,
 ):
-
     data_to_encode = data.copy()
     if expire_delta:
         expire = datetime.now(timezone.utc) + expire_delta
@@ -50,7 +49,6 @@ def authenticate_user(
     password: str,
     db: user_handler_utils.Session = Depends(user_handler_utils.get_db),
 ):
-
     if user := get_user_by_username(db, username=username):
         return (
             user
@@ -65,7 +63,6 @@ async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: user_handler_utils.Session = Depends(user_handler_utils.get_db),
 ):
-
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

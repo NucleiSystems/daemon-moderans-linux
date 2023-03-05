@@ -1,0 +1,83 @@
+version: "3"
+
+volumes:
+  data:
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_PASSWORD=postgrespw
+    ports:
+      - 5432:5432
+    volumes:
+      - data:/var/lib/postgresql
+
+  redis:
+    image: redis:latest
+    volumes:
+      - data:/data
+    ports:
+      - 6379:6379
+
+  ipfs:
+    image: ipfs/go-ipfs:latest
+    command:
+      - daemon
+      - --migrate=true
+      - --mount
+      - --routing=dhtclient
+      - --enable-namesys-pubsub
+    privileged: true
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    devices:
+      - /dev/fuse:/dev/fuse
+    environment:
+      - IPFS_PROFILE=server
+      - IPFS_PATH=/ipfsdata
+    ports:
+      - 8080:8080
+      - 4001:4001
+      - 5001:5001
+    volumes:
+      - ./data/ipfs:/ipfsdata
+      - /etc/fuse.conf:/etc/fuse.conf:ro
+      - ./data/ipfs:/data/ipfs
+      - ./data/export:/export
+
+  nuclei_backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.nuclei-backend.loadbalancer.server.port=80
+      - traefik.http.routers.nuclei-backend.entrypoints=http
+      - traefik.http.routers.nuclei-backend.rule=Host(`nucleibackend.systems`)
+      - traefik.docker.network=traefik.public
+      - traefik.http.routers.nuclei-backend.tls=true
+      - traefik.http.routers.nuclei-backend.tls.certresolver=myresolver
+      - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=true
+      - traefik.http.routers.nuclei-backend.middlewares=https-redirect
+
+    ports:
+      - 8000:8000
+    networks:
+      - traefik-public
+    environment:
+      - "DATABASE_URL=postgresql://postgres:postgrespw@postgres:5432/postgres"
+      - "REDIS_URL=redis://redis:6379"
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    volumes:
+      - data:/app/data
+
+networks:
+  traefik-public:
+    external: true
