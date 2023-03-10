@@ -6,6 +6,12 @@ Nuclei is a web application that allows you to upload and manage your own compre
 
 Nuclei Daemon Moderans for Linux is an open source software that securely stores your media files using IPFS (InterPlanetary File System) with compression applied to decrease the size of the media files. It provides temporary access to the files to increase the security of the media.
 
+I'm currently looking for contributors who are passionate about building user-friendly applications that prioritize privacy and security.
+
+Some of the expectations for contributors include having experience with Python and FastAPI, as well as a good understanding of SQL databases such as PostgreSQL. Additionally, I'm looking for individuals who share a similar philosophy to mine when it comes to the functionality of the application, such as utilizing IPFS for decentralized storage and implementing end-to-end encryption to ensure user privacy.
+
+If you're interested in contributing to the project, please feel free to reach out to me. Let's work together to build a better, more secure future for data storage.
+
 # what was the original plan
 
 The main mission i was trying to solve, the main reason all of this started out is due to me having a dirty desktop. It pointed out how much clutter we store just incase we need it one day. Nuclei aimed at providing users a limbo-zone for thier files so they can sustain thier files that dont have too much importance in a secure limbozone.
