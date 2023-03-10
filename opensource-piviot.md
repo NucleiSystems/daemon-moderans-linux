@@ -1,11 +1,3 @@
-# Nuclei
-
-built using Fastapi and flutter and respective extensions.
-
-Nuclei is a web application that allows you to upload and manage your own compressed media to increase media availability and accessibility.
-
-Nuclei Daemon Moderans for Linux is an open source software that securely stores your media files using IPFS (InterPlanetary File System) with compression applied to decrease the size of the media files. It provides temporary access to the files to increase the security of the media.
-
 # what was the original plan
 
 The main mission i was trying to solve, the main reason all of this started out is due to me having a dirty desktop. It pointed out how much clutter we store just incase we need it one day. Nuclei aimed at providing users a limbo-zone for thier files so they can sustain thier files that dont have too much importance in a secure limbozone.
@@ -25,23 +17,3 @@ Python: Python is a very powerful language and due to its simplistic DX it was a
 Postgresql: To store user data, we cannot allow users to depend on local file stores, therefore we use a more elegant solution, with that in mind, the database used is Postgresql, its a simple choice, i didnt use sqlite due to physical database access and saw that as a challange to the security philosophy in mind.
 
 Redis: To allow users to view thier files, we fetch user's data with an internal routine that assembles a request to securely collect user's files and systematically audit user's files. Per view, user's files are fetched, however, to avoid having to fetch everytime, we use Redis to cache thier files in memory (**THIS NEED IMMEDIATE REWORK FOR CLIENT, store the files temporarily on the client with encrypted sharding).** For web and mobile platforms, redis is a simplistic solution for web-based caching of user's file byte data.
-
-# Mission
-
-The mission of Nuclei is to provide a secure and efficient way to store and access media files. By leveraging the power of IPFS and compression techniques, Nuclei aims to provide a solution that not only reduces the size of the files but also ensures the files are stored securely.
-
-# Problems solved by Nuclei
-
-- Security: Nuclei provides a secure way to store media files by using IPFS. The files are encrypted and can only be accessed by users with the appropriate permissions.
-- Efficiency: By applying compression techniques, Nuclei reduces the size of media files, making it faster and more efficient to store and access them.
-- Accessibility: Nuclei provides temporary access to media files, making it more secure by limiting the time a file is accessible.
-  How to run
-  Nuclei can be run using Docker Compose. Here are the steps to get started:
-
-# Clone the repository:
-
-bash
-
-- Copy code
-- git clone https://github.com/Nuclei-Media/daemon-moderans-linux.git
-- use docker-compose up to run the application
