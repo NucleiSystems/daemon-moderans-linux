@@ -7,7 +7,6 @@ from ..database import Base, engine
 
 
 class User(Base):
-
     # The User class is a Python class that inherits from the Base class. It has a bunch of columns that
     # are defined as class attributes
 
@@ -20,4 +19,3 @@ class User(Base):
     is_active = Column(Boolean, default=True)
 
     data = relationship("DataStorage", back_populates="owner")
-    permanent_store = relationship("PermanentStore", back_populates="user_relationship")

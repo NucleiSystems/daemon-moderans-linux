@@ -14,7 +14,6 @@ class Nuclei(FastAPI):
         description: str = "Nuclei API",
         version: str = "0.1.0"
     ):
-
         super().__init__(title=title, description=description, version=version)
         self.add_models()
         self.add_routes()
@@ -44,12 +43,9 @@ class Nuclei(FastAPI):
 
         from nuclei_backend.syncing_service.sync_service_main import sync_router
 
-        # from nuclei_backend.permanent_store.main import permanent_store_router
-
         self.include_router(storage_service)
 
         self.include_router(users_router)
-        # self.include_router(permanent_store_router)
         self.include_router(sync_router)
 
     @lru_cache(maxsize=None)
@@ -61,11 +57,9 @@ class Nuclei(FastAPI):
         from .database import SessionLocal, engine
         from .storage_service import ipfs_model
         from .users import user_models
-        from .permanent_store import permanent_store_model
 
         user_models.Base.metadata.create_all(bind=engine)
         ipfs_model.Base.metadata.create_all(bind=engine)
-        permanent_store_model.Base.metadata.create_all(bind=engine)
 
 
 app = Nuclei()

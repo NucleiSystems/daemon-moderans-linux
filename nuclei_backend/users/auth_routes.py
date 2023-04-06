@@ -6,13 +6,12 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from nuclei_backend.users import user_handler_utils
 from jose import JWTError, jwt
 
-
-# import db
 from .auth_utils import authenticate_user, create_access_token, get_current_user
 from .main import users_router
 from .user_models import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/user/token")
+
 from fastapi.param_functions import Form
 
 
@@ -39,6 +38,11 @@ def login_for_access_token(
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@users_router.post("/logout")
+def logout(current_user: User = Depends(get_current_user)):
+    return {"message": "Successfully logged out"}
 
 
 @users_router.get("/me")

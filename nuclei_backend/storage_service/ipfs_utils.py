@@ -23,6 +23,7 @@ from .ipfs_model import DataStorage
 from .ipfs_schema import IpfsCreate
 import asyncio
 
+
 def ensure_dir(path: str) -> None:
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
@@ -44,7 +45,7 @@ def remove(path):
 
 def generate_hash(cid: LiteralString) -> str:
     unique_id = str(uuid4())
-    _bat_path = os.path.join(Config.TEMP_FOLDER, f"hash{unique_id}.sh")
+    _bat_path = os.path.join(Config.TEMP_FOLDER, f"hash{unique_id}.bat")
     _buffer_path = os.path.join(Config.TEMP_FOLDER, f"hash{unique_id}.txt")
 
     with open(_bat_path, "w") as f:
@@ -53,9 +54,9 @@ def generate_hash(cid: LiteralString) -> str:
         f.write(rf"cd {Config.TEMP_FOLDER}")
         f.write("\n")
         f.write(rf"{Config.KUBO_PATH} ls -v {cid} > hash{unique_id}.txt")
-    
+
     os.chmod(_bat_path, 0b111101101)
-    
+
     os.popen(_bat_path)
     time.sleep(1)
 
@@ -89,7 +90,7 @@ def produce_cid(file: bytes, filename: str) -> LiteralString:
         f.write(
             rf"{Config.KUBO_PATH} add --quiet --pin {_temp_file_path} > {path}/cid{unique_id}.txt"
         )
-    
+
     os.chmod(_bat_path, 0b111101101)
     os.popen(_bat_path)
     time.sleep(1)
