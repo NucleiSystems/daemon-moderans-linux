@@ -1,4 +1,5 @@
 import secrets
+from celery import Celery
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -64,3 +65,8 @@ class Nuclei(FastAPI):
 
 app = Nuclei()
 app.configure_middlware()
+celery = Celery(
+    __name__,
+    broker="amqp://myuser:mypassword@host.docker.internal:5672",
+    backend="rpc://",
+)

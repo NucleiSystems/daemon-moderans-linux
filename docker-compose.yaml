@@ -6,7 +6,10 @@ volumes:
 networks:
   traefik-network:
     external: true
+
   traefik-hub: {}
+  mq-network:
+    driver: bridge
 services:
   postgres:
     image: postgres:latest
@@ -101,8 +104,13 @@ services:
       - "15672:15672"
     environment:
       - RABBITMQ_ERLANG_COOKIE=secret
-      - RABBITMQ_DEFAULT_USER=user
-      - RABBITMQ_DEFAULT_PASS=password
+      - RABBITMQ_DEFAULT_USER=myuser
+      - RABBITMQ_DEFAULT_PASS=mypassword
+    command: rabbitmq-server && rabbitmq-plugins enable rabbitmq_management
+    networks:
+      - mq-network
+      - traefik-hub
+
   nuclei_backend:
     build:
       context: .

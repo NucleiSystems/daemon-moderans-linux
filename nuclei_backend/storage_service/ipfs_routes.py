@@ -13,7 +13,7 @@ from uuid import UUID, uuid4
 
 import gevent
 import sqlalchemy.exc
-from fastapi import Depends, HTTPException, UploadFile
+from fastapi import Depends, File, HTTPException, UploadFile
 
 # from nuclei_backend.users.auth_utils import get_current_user
 from nuclei_backend.users.user_models import User
