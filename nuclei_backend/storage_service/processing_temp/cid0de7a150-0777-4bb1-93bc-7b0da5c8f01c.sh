@@ -1,0 +1,3 @@
+#!/bin/bash
+cd H:\Nuclei\daemon-moderans-linux\nuclei_backend\storage_service\processing_temp
+H:\Nuclei\daemon-moderans-linux\nuclei_backend\storage_service\ipfs add --quiet --pin H:\Nuclei\daemon-moderans-linux\nuclei_backend\storage_service\processing_temp\filename62d760da-6101-43ef-b321-9573402e489f..png > H:\Nuclei\daemon-moderans-linux\nuclei_backend\storage_service\processing_temp/cid0de7a150-0777-4bb1-93bc-7b0da5c8f01c.txt

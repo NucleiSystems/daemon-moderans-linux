@@ -44,12 +44,11 @@ async def dispatch_all(user: User = Depends(get_current_user), db=Depends(get_db
             file_session_cache.activate_file_session()
             file_listener = FileListener(user.id, files.session_id)
 
-            file_listener.file_listener()
+            file_listener.file_listener()  # TODO this is the problem
 
             scheduler_controller = SchedulerController()
             if scheduler_controller.check_scheduler():
                 scheduler_controller.start_scheduler()
-
 
         except Exception as e:
             raise e
@@ -59,7 +58,7 @@ async def dispatch_all(user: User = Depends(get_current_user), db=Depends(get_db
         try:
             await files.cleanup()
         except Exception as e:
-            print("before the cleanup await",e)
+            print("before the cleanup await", e)
         file_session_cache.activate_file_session()
 
     return {

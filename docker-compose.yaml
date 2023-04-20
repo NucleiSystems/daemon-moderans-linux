@@ -50,13 +50,21 @@ services:
       - apparmor:unconfined
     devices:
       - /dev/fuse:/dev/fuse
+
     environment:
       - IPFS_PROFILE=server
       - IPFS_PATH=/ipfsdata
+
     ports:
       - 8080:8080
       - 4001:4001
       - 5001:5001
+
+    expose:
+      - 8080:8080
+      - 4001:4001
+      - 5001:5001
+
     volumes:
       - ./data/ipfs:/ipfsdata
       - /etc/fuse.conf:/etc/fuse.conf:ro
@@ -81,12 +89,10 @@ services:
     depends_on:
       - traefik
 
-  # Start Traefik with the latest version
   traefik:
     image: traefik:v2.9
     container_name: traefik
     command:
-      # Enable Hub communication (open the port 9900 and 9901 by default)
       - --experimental.hub=true
       - --hub.tls.insecure=true
       - --metrics.prometheus.addrouterslabels=true
@@ -110,6 +116,7 @@ services:
     depends_on:
       - postgres
       - redis
+      - ipfs
     links:
       - postgres
     restart: unless-stopped

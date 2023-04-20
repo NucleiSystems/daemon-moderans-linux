@@ -11,7 +11,7 @@ from .scheduler_config import SchConfig
 
 class RedisController:
     def __init__(self, user):
-        DOCKER_CONN = "redis://172.25.0.2:6379"
+        DOCKER_CONN = "redis://172.18.0.4:6379"
 
         self.redis_connection = redis.Redis().from_url(
             url=DOCKER_CONN, decode_responses=True, db=0
@@ -49,7 +49,7 @@ class FileCacheEntry:
     def __init__(self, dir_id):
         self.dir_id = dir_id
         self.redis_connection = redis.Redis().from_url(
-            url="redis://default:redispw@localhost:6379", decode_responses=True, db=1
+            url="redis://172.18.0.4:6379", decode_responses=True, db=1
         )
 
     def activate_file_session(self):
@@ -134,7 +134,9 @@ class SchedulerController:
 class FileListener(SchedulerController):
     def __init__(self, user_id, session_id):
         super().__init__()
+
         self.user_id = user_id
+
         self.redis = RedisController(user_id)
         self.session_id = session_id
 
