@@ -1,10 +1,8 @@
-import secrets
 from celery import Celery
-from fastapi import Body, Depends, FastAPI, Header, HTTPException, Query
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
-from functools import total_ordering, lru_cache
+from functools import lru_cache
 
 
 class Nuclei(FastAPI):
@@ -21,10 +19,6 @@ class Nuclei(FastAPI):
 
     @lru_cache(maxsize=None)
     def configure_middlware(self):
-        """
-        It adds a middleware to the app
-        """
-
         self.add_middleware(
             CORSMiddleware,
             allow_origins=["*"],
@@ -35,10 +29,6 @@ class Nuclei(FastAPI):
 
     @lru_cache(maxsize=None)
     def add_routes(self):
-        """
-        It's a function that adds routes to the app
-        """
-
         from nuclei_backend.users.main import users_router
         from nuclei_backend.storage_service.main import storage_service
 
@@ -51,11 +41,7 @@ class Nuclei(FastAPI):
 
     @lru_cache(maxsize=None)
     def add_models(self):
-        """
-        It creates the tables in the database.
-        """
-
-        from .database import SessionLocal, engine
+        from .database import engine
         from .storage_service import ipfs_model
         from .users import user_models
 
@@ -64,9 +50,5 @@ class Nuclei(FastAPI):
 
 
 app = Nuclei()
+
 app.configure_middlware()
-celery = Celery(
-    __name__,
-    broker="amqp://myuser:mypassword@host.docker.internal:5672",
-    backend="rpc://",
-)

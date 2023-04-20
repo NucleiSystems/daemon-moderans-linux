@@ -12,7 +12,6 @@ from .user_models import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/user/token")
 
-from fastapi.param_functions import Form
 
 
 @users_router.post("/token")
@@ -53,7 +52,7 @@ def read_users_me(current_user: User = Depends(get_current_user)):
 @users_router.post("/token/verify")
 async def verify_token(token: str = Depends(oauth2_scheme)):
     try:
-        token_data = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        token_data = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])  # noqa: F821
         sub = token_data.get("sub")
         if sub is None:
             raise HTTPException(
@@ -69,7 +68,7 @@ async def verify_token(token: str = Depends(oauth2_scheme)):
 @users_router.post("/token/refresh")
 async def refresh_token(token: str = Depends(oauth2_scheme)):
     try:
-        token_data = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        token_data = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])  # noqa: F821
         sub = token_data.get("sub")
         if sub is None:
             raise HTTPException(
@@ -84,4 +83,4 @@ async def refresh_token(token: str = Depends(oauth2_scheme)):
         raise HTTPException(
             status_code=401, detail="Invalid authentication credentials"
         )
-    return JSONResponse({"access_token": access_token})
+    return JSONResponse({"access_token": access_token})  # noqa: F821

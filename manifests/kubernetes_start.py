@@ -1,4 +1,4 @@
-import subprocess, pathlib
+import subprocess, pathlib  # noqa: E401
 
 manifest_files = [
     pathlib.Path("postgres-development.yaml"),

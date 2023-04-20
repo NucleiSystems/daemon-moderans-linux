@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException
 
 from . import user_handler_utils
-from .auth_utils import *
+from .auth_utils import *  # noqa: F403
 from .main import users_router
 
 
@@ -10,20 +10,9 @@ def create_user(
     user: user_handler_utils.user_schemas.UserCreate,
     db: user_handler_utils.Session = Depends(user_handler_utils.get_db),
 ):
-    """
-    If a user with the same username exists, raise an exception. Otherwise, create a new user.
-
-    Arguments:
-
-    * `user`: user_handler_utils.user_schemas.UserCreate
-    * `db`: user_handler_utils.Session = Depends(user_handler_utils.get_db)
-
-    Returns:
-
-    The user_handler_utils.create_user function returns a user object.
-    """
-
-    if db_user := user_handler_utils.get_user_by_username(db, username=user.username):
+    if db_user := user_handler_utils.get_user_by_username(
+        db, username=user.username
+    ):  # noqa: F841
         raise HTTPException(
             status_code=400, detail="User with this email already exists"
         )

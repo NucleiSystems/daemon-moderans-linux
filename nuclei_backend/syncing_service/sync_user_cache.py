@@ -1,30 +1,28 @@
 import json
-import shutil
 import redis
 import time
+import base64
+
 import pathlib
 from apscheduler.schedulers.background import BackgroundScheduler
 from functools import lru_cache
 from .scheduler_config import SchConfig
 
-import base64
-
 
 class RedisController:
     def __init__(self, user):
-        DOCKER_CONN = "redis://redis:6379"
-        DEV_DOCKER = "redis://default:redispw@localhost:6379/0"
-        DEV_CONN = "redis://default:redispw@localhost:6379"
+        DOCKER_CONN = "redis://172.25.0.2:6379"
+
         self.redis_connection = redis.Redis().from_url(
             url=DOCKER_CONN, decode_responses=True, db=0
         )
+
         self.user = user
 
     def set_files(self, file: list[dict[str, bytes]]):
         return self.redis_connection.set(str(self.user), str(file))
 
     def get_files(self):
-        # get the list of files for a user
         return self.redis_connection.get(self.user)
 
     def clear_cache(self):

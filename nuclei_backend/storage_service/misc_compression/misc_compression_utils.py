@@ -19,21 +19,13 @@ class CompressMisc(CompressionImpl):
     """Compress video with ffmpeg"""
 
     def __init__(self, file: bytes, filename):
-        """
-        Initialise the class with the rate and file to compress
-
-        :param file: The file to compress
-        :param filename: The filename of the file
-
-        """
-
         super().__init__(app_path="misc")
         self.file = file
         self.filename = filename
         self.temp_dir = self.save_to_temp(file, filename)
 
         self.dir_to_cleanup = {
-            "compression": f'{str(self.temp_dir[0])[:str(self.temp_dir[0]).index(r"_compression_temp")]}_compression_temp',
+            "compression": f'{str(self.temp_dir[0])[:str(self.temp_dir[0]).index(r"_compression_temp")]}_compression_temp',  # noqa: E501
             "processing": pathlib.Path(
                 f'{str(self.temp_dir[0])[:str(self.temp_dir[0]).index(r"_compression_temp")]}processing_temp'
             ).parent.parent.joinpath("processing_temp"),
@@ -52,7 +44,7 @@ class CompressMisc(CompressionImpl):
             block_linked=True,
             content_checksum=True,
         )
-        self._file_name = f"{self.dir_to_cleanup['compression']}\{self.filename[:self.filename.index('.')]}.lz4"
+        self._file_name = f"{self.dir_to_cleanup['compression']}\{self.filename[:self.filename.index('.')]}.lz4"  # noqa: E501, E999
 
         print("file name ", self._file_name)
         with open(self._file_name, "wb") as fout:

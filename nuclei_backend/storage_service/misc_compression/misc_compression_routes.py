@@ -1,13 +1,10 @@
-import base64
 
-import httpx
-from fastapi import Depends, File, HTTPException, UploadFile, status
+from fastapi import Depends, UploadFile, status
 
 from nuclei_backend.users.auth_utils import get_current_user
 
 from ...users.user_handler_utils import get_db
-from ..CompressionBase import CompressionImpl
-from ..ipfs_utils import *
+from ..ipfs_utils import *  # noqa: F403
 from ..main import storage_service
 from .misc_compression_utils import CompressMisc
 
@@ -16,7 +13,7 @@ from .misc_compression_utils import CompressMisc
 
 @storage_service.post("/compress/files")
 def compress_task_misc(
-    files: List[UploadFile],
+    files: List[UploadFile],  # noqa: F405
     ipfs_flag: bool | None = True,
     identity_token: str = Depends(get_current_user),
     db=Depends(get_db),

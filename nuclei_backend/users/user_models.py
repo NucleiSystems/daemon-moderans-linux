@@ -1,15 +1,12 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table
+from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy.orm import relationship
 
-from ..database import Base, engine
+from ..database import Base
 
 # iterate through the table and print the column names
 
 
 class User(Base):
-    # The User class is a Python class that inherits from the Base class. It has a bunch of columns that
-    # are defined as class attributes
-
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)

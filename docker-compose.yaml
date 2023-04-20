@@ -10,6 +10,7 @@ networks:
   traefik-hub: {}
   mq-network:
     driver: bridge
+
 services:
   postgres:
     image: postgres:latest
@@ -31,10 +32,6 @@ services:
       - target: 6379
     networks:
       - traefik-hub
-    labels:
-      - "traefik.tcp.routers.redis.rule=HostSNI(`https://gleaming-fowl-nbdqvk.ziska44n.traefikhub.io`) && Path(`/`)"
-      - "traefik.tcp.routers.redis.tls=true"
-      - "traefik.tcp.routers.redis.tls.certresolver=myresolver"
 
   ipfs:
     networks:
@@ -94,21 +91,6 @@ services:
       - --hub.tls.insecure=true
       - --metrics.prometheus.addrouterslabels=true
     networks:
-      - traefik-hub
-
-  rabbitmq:
-    image: rabbitmq:latest
-    hostname: rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    environment:
-      - RABBITMQ_ERLANG_COOKIE=secret
-      - RABBITMQ_DEFAULT_USER=myuser
-      - RABBITMQ_DEFAULT_PASS=mypassword
-    command: rabbitmq-server && rabbitmq-plugins enable rabbitmq_management
-    networks:
-      - mq-network
       - traefik-hub
 
   nuclei_backend:

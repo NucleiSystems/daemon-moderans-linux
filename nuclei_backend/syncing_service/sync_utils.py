@@ -1,22 +1,16 @@
 import contextlib
-from functools import total_ordering, lru_cache
 import logging
 import shutil
-import subprocess
 import time
 
-from fastapi import Depends, HTTPException
-import os, pathlib
+from fastapi import HTTPException
+import os, pathlib  # noqa: E401
 
 from ..storage_service.ipfs_model import DataStorage
-from ..users.auth_utils import get_current_user
-from ..users.user_handler_utils import get_db
-from ..users.user_models import User
-from .sync_user_cache import FileListener, RedisController, SchedulerController
 from uuid import uuid4
 from pathlib import Path
 import json
-import contextlib
+import contextlib  # noqa: F811
 
 
 def get_user_cids(user_id, db) -> list:
@@ -57,7 +51,7 @@ class UserDataExtraction:
             os.chdir(self.new_folder)
             for _ in self.cids:
                 try:
-                    file = f"{self.ipget_path} --node=local {_.file_cid} -o {_.file_name} --progress=true"
+                    file = f"{self.ipget_path} --node=local {_.file_cid} -o {_.file_name} --progress=true"  # noqa: E501
 
                     os.system(str(f"{file}"))
                     print(

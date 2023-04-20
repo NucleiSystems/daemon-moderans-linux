@@ -1,11 +1,5 @@
 import contextlib
 import json
-import os
-import pathlib
-import random
-import time
-import uuid
-from functools import lru_cache, total_ordering
 
 from fastapi import Depends
 from fastapi_utils.tasks import repeat_every
@@ -117,7 +111,6 @@ async def redis_cache_clear(user: User = Depends(get_current_user)):
 @sync_router.get("/fetch/redis/test")
 async def redis_cache_test(user: User = Depends(get_current_user), db=Depends(get_db)):
     user_id = "user_1"
-    session_id = "session_1"
     # redis test
     redis = RedisController(user_id)
     redis.initialise_user()

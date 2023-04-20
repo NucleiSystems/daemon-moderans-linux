@@ -1,6 +1,5 @@
 import math
 import random
-from typing import List
 
 from quick_sort import quick_sort
 

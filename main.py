@@ -1,6 +1,5 @@
 import logging
 import subprocess
-import pathlib
 import uvicorn
 
 

@@ -1,17 +1,8 @@
-from concurrent.futures import ThreadPoolExecutor
-import sys
-import time
 import uuid
 import os
 import hashlib
-import threading
-from threading import Thread
-import timeit
-import asyncio
-import multiprocessing
 
 # import the queue class from Python Standard Library
-from queue import Queue
 
 
 class Chunker:
@@ -68,7 +59,7 @@ class Chunker:
     def write_ccif(self):
         """
         It writes the file's information to a file with the same name as the file's primary UUID.
-        """
+        """  # noqa: E501
         with open(f"{self.primary_uuid}.ccif", "wb+") as ccif:
             ccif.write(bytes(str(self.primary_uuid), "utf-8"))
             ccif.write(bytes("\n", "utf-8"))
@@ -110,7 +101,7 @@ class Reconstruct:
 
         :param data: The data to be parsed
         :return: A list of strings.
-        """
+        """  # noqa: E501
         return [
             elem.strip("' ")
             for elem in data.strip("[]\n")
@@ -145,7 +136,7 @@ class Reconstruct:
         It returns a list of files in the current directory that contain the string "_chunk_" and the
         first character of the primary_uuid attribute of the object
         :return: A list of files that are sorted by the chunk number.
-        """
+        """  # noqa: E501
 
         return sorted(
             [
@@ -160,7 +151,7 @@ class Reconstruct:
         """
         It opens the file that we want to reconstruct, then iterates through the chunk files and writes
         them to the reconstructed file
-        """
+        """  # noqa: E501
         with open(f"reconstructed/{self.file_name}", "wb+") as reconstructed_file:
             for chunk in self.chunk_files():
                 with open(chunk, "rb") as chunk_file:
@@ -170,7 +161,7 @@ class Reconstruct:
         """
         It reads the file in chunks of 1024 bytes and updates the hash object with each chunk
         :return: The return value is a boolean value.
-        """
+        """  # noqa: E501
         _hash = hashlib.sha256()
         with open(f"reconstructed/{self.file_name}", "rb") as file:
 
@@ -188,7 +179,7 @@ class Reconstruct:
         """
         The function runs the parse_ccif_file() function, then the construct_file() function, then the
         ensure_integrity() function
-        """
+        """  # noqa: E501
         self.parse_ccif_file()
         self.construct_file()
         if self.ensure_integrity():
@@ -199,7 +190,7 @@ def scan_for_ccif_files():
     """
     It returns a generator object that yields the name of each file in the current directory that ends
     with ".ccif"
-    """
+    """  # noqa: E501
     for file in os.listdir():
         if file.endswith(".ccif"):
             yield file

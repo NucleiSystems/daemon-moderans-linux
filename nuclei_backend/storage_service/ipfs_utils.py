@@ -1,27 +1,18 @@
 from __future__ import annotations
 
-import contextlib
 import datetime
-import logging
 import os
 import os.path
 import pathlib
-from subprocess import PIPE, Popen, call
 import time
-from typing import *
-from uuid import UUID, uuid4
+from typing import *  # noqa: F403
+from uuid import uuid4
 
-import gevent
-from fastapi import File, UploadFile
-from sqlalchemy.orm import Session
 from typing_extensions import LiteralString
 
-from nuclei_backend.users.user_models import User
 
 from .config import Config
 from .ipfs_model import DataStorage
-from .ipfs_schema import IpfsCreate
-import asyncio
 
 
 def ensure_dir(path: str) -> None:
@@ -88,7 +79,7 @@ def produce_cid(file: bytes, filename: str) -> LiteralString:
         f.write(rf"cd {Config.TEMP_FOLDER}")
         f.write("\n")
         f.write(
-            rf"{Config.KUBO_PATH} add --quiet --pin {_temp_file_path} > {path}/cid{unique_id}.txt"
+            rf"{Config.KUBO_PATH} add --quiet --pin {_temp_file_path} > {path}/cid{unique_id}.txt"  # noqa: E501
         )
 
     os.chmod(_bat_path, 0b111101101)

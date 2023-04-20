@@ -1,7 +1,6 @@
 from concurrent.futures import ProcessPoolExecutor
 import os
 import pathlib
-from multiprocessing import Process, Queue
 import psutil
 import zstandard as zstd
 import numpy as np
@@ -51,7 +50,7 @@ class CompressImage(CompressionImpl):
             chunks = [original_data]
         else:
             compression_processes = os.cpu_count()
-            chunk_size = (file_size // compression_processes) + 1
+            (file_size // compression_processes) + 1
             chunks = np.array_split(original_data, compression_processes)
 
         with ProcessPoolExecutor(max_workers=compression_processes) as executor:

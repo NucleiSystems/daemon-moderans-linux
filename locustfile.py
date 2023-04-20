@@ -1,4 +1,3 @@
-import time
 from locust import HttpUser, TaskSet, task
 from faker import Faker
 import urllib.parse
@@ -26,7 +25,7 @@ class UserBehavior(TaskSet):
             "password": self.password,
         }
         with self.client.post(
-            "/users/register", json=payload, catch_response=True
+            "users/register", json=payload, catch_response=True
         ) as response:
             if response.status_code == 201:
                 response.success()
@@ -47,7 +46,7 @@ class UserBehavior(TaskSet):
         encoded_payload = urllib.parse.urlencode(payload)
 
         with self.client.post(
-            "/users/token", headers=headers, data=encoded_payload, catch_response=True
+            "users/token", headers=headers, data=encoded_payload, catch_response=True
         ) as response:
             if response.status_code == 200:
                 self.token = response.json().get("access_token")
@@ -61,7 +60,7 @@ class UserBehavior(TaskSet):
         files = {"files": ("250.png", open("250.png", "rb"), "image/png")}
 
         with self.client.post(
-            "/storage/compress/image?ipfs_flag=true",
+            "storage/compress/image?ipfs_flag=true",
             headers=headers,
             files=files,
             catch_response=True,

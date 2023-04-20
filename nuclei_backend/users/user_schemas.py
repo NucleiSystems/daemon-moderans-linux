@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 
 
-# `User` is a class that inherits from `UserBase` and has an `id`, `is_active` and `Config` class
 class UserBase(BaseModel):
     email: str
 

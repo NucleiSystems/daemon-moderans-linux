@@ -1,27 +1,16 @@
 from __future__ import annotations
 
-import contextlib
-import datetime
-import hashlib
 import logging
-import os
-import pathlib
-from fileinput import filename
-from subprocess import PIPE, Popen, call
-from typing import *
-from uuid import UUID, uuid4
+from typing import *  # noqa: F403
 
-import gevent
 import sqlalchemy.exc
 from fastapi import Depends, File, HTTPException, UploadFile
 
-# from nuclei_backend.users.auth_utils import get_current_user
 from nuclei_backend.users.user_models import User
 
 from ..users.auth_utils import get_current_user
 from ..users.user_handler_utils import get_db
-from .config import Config
-from .ipfs_utils import *
+from .ipfs_utils import *  # noqa: F403
 from .main import storage_service
 
 
@@ -35,10 +24,10 @@ async def upload(
     # get the file name
     file: bytes = file_name.file.read()
     try:
-        cid: str = produce_cid(file, file_name)
+        cid: str = produce_cid(file, file_name)  # noqa: F405
         if not cid:
             raise HTTPException(status_code=400, detail="Failed to produce CID")
-        _hash: str = generate_hash(cid)
+        _hash: str = generate_hash(cid)  # noqa: F405
         if not _hash:
             raise HTTPException(status_code=400, detail="Failed to generate hash")
         user: User = current_user
@@ -50,7 +39,7 @@ async def upload(
         raise HTTPException(status_code=500, detail="Internal Server Error") from e
     try:
         users_id = current_user.id
-        data_record = assemble_record(
+        data_record = assemble_record(  # noqa: F405
             file,
             file_name,
             cid,
@@ -60,7 +49,7 @@ async def upload(
         db.add(data_record)
         db.commit()
 
-    except sqlalchemy.exc.IntegrityError as e:
+    except sqlalchemy.exc.IntegrityError:
         return {"message": "File already exists", "file_hash": hash}
 
     except Exception as e:
@@ -72,6 +61,3 @@ async def upload(
         "user_id": current_user.username,
         "status": "success",
     }
-
-
-# https://stribny.name/blog/fastapi-video/#:~:text=There%20is%20a%20simple%20mechanism,format%20bytes%3D1024000%2C2048000%20.

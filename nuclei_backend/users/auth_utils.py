@@ -1,24 +1,21 @@
 from datetime import datetime, timedelta, timezone
 
-from typing import Dict, Final, Literal, Union
+from typing import Dict, Literal, Union
 
-# The class is a configuration class that contains the secret key, the algorithm, and the access token
+# The class is a configuration class that contains the secret key, the algorithm, and the access token  # noqa: E501
 # expiration time
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from pydantic import BaseModel
 
 from nuclei_backend.users import user_handler_utils
 
-from .main import users_router
-from .user_handler_utils import get_user_by_username, verify_password
-from .user_models import User
+from .user_handler_utils import get_user_by_username
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/token")
 
-from .Config import UsersConfig
+from .Config import UsersConfig  # noqa: E402
 
 
 class TokenData(BaseModel):

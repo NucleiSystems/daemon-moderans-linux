@@ -7,7 +7,7 @@ import redis
 
 
 class TicketCache:
-    """Ticket cache is a redis cache that stores the tickets for the file transfer tunnels"""
+    """Ticket cache is a redis cache that stores the tickets for the file transfer tunnels"""  # noqa: E501
 
     def __init__(self):
         self.cache = redis.Redis(host="localhost", port=6379, db=0)
