@@ -1,28 +1,27 @@
 import json
+import shutil
 import redis
 import time
-import base64
-
 import pathlib
 from apscheduler.schedulers.background import BackgroundScheduler
 from functools import lru_cache
 from .scheduler_config import SchConfig
+from os import environ
+import base64
 
 
 class RedisController:
     def __init__(self, user):
-        DOCKER_CONN = "redis://172.18.0.4:6379"
-
         self.redis_connection = redis.Redis().from_url(
-            url=DOCKER_CONN, decode_responses=True, db=0
+            url=environ.get("REDIS_URL"), decode_responses=True, db=0
         )
-
         self.user = user
 
     def set_files(self, file: list[dict[str, bytes]]):
         return self.redis_connection.set(str(self.user), str(file))
 
     def get_files(self):
+        # get the list of files for a user
         return self.redis_connection.get(self.user)
 
     def clear_cache(self):
@@ -46,36 +45,44 @@ class RedisController:
 
 
 class FileCacheEntry:
+    """A cache entry for a file in a directory."""
+
     def __init__(self, dir_id):
+        """Create a new file cache entry for the specified directory."""
         self.dir_id = dir_id
         self.redis_connection = redis.Redis().from_url(
-            url="redis://172.18.0.4:6379", decode_responses=True, db=1
+            url=environ.get("REDIS_URL"), decode_responses=True, db=1
         )
 
     def activate_file_session(self):
-        return self._extracted_from_deactivate_file_session_2(
-            "file_session_cache&",
-            "active",
-            "file_session_cache_activetime&",
-            "activated",
+        """Activate the file session for this cache entry."""
+        self.redis_connection.set(f"file_session_cache&{str(self.dir_id)}", "active")
+        self.redis_connection.set(
+            f"file_session_cache_activetime&{str(self.dir_id)}", f"{time.ctime()}"
         )
+        return "activated"
 
     def deactivate_file_session(self):
-        return self._extracted_from_deactivate_file_session_2(
-            "file_session_cache_id&",
-            "notactive",
-            "file_session_cache_deactivetime&",
-            "deactivated",
+        """Deactivate the file session for this cache entry."""
+        self.redis_connection.set(
+            f"file_session_cache_id&{str(self.dir_id)}", "notactive"
         )
+        self.redis_connection.set(
+            f"file_session_cache_deactivetime&{str(self.dir_id)}", f"{time.ctime()}"
+        )
+        return "deactivated"
 
-    # TODO Rename this here and in `activate_file_session` and `deactivate_file_session`
-    def _extracted_from_deactivate_file_session_2(self, arg0, arg1, arg2, arg3):
-        self.redis_connection.set(f"{arg0}{str(self.dir_id)}", arg1)
-        self.redis_connection.set(f"{arg2}{str(self.dir_id)}", f"{time.ctime()}")
-        return arg3
+    def _deactivate_file_session(
+        self, cache_id_key, status_value, cache_time_key, time_value
+    ):
+        """Helper method to deactivate a file session."""
+        self.redis_connection.set(f"{cache_id_key}{str(self.dir_id)}", status_value)
+        self.redis_connection.set(f"{cache_time_key}{str(self.dir_id)}", time_value)
+        return "deactivated"
 
     @classmethod
     def check_and_delete_files(cls):
+        """Check for and delete files that have been inactive for more than an hour."""
         for key in cls.redis_connection.scan_iter(match="file_session_cache_id&*"):
             status = cls.redis_connection.get(key)
             if status == b"notactive":
@@ -134,32 +141,28 @@ class SchedulerController:
 class FileListener(SchedulerController):
     def __init__(self, user_id, session_id):
         super().__init__()
-
         self.user_id = user_id
-
         self.redis = RedisController(user_id)
         self.session_id = session_id
 
-    @lru_cache(maxsize=None)
     def file_listener(self):
         folder_path = self.path / str(self.session_id)
         print("folder path", folder_path)
-        if folder_path.is_dir():
-            time.sleep(2)
-            files_index = open(f"{self.session_id}.internal.json", "r").read()
-            data = json.loads(files_index)
-            data = dict(data)
-            data = data.items()
-            dispatch_dict = {str(self.user_id): []}
+        time.sleep(2)
+        files_index = open(f"{self.session_id}.internal.json", "r").read()
+        data = json.loads(files_index)
+        data = dict(data)
+        data = data.items()
+        dispatch_dict = {str(self.user_id): []}
 
-            for _ in data:
-                with open(_[0], "rb") as file_read_buffer:
-                    file_read_buffer = file_read_buffer.read()
+        for _ in data:
+            with open(_[0], "rb") as file_read_buffer:
+                file_read_buffer = file_read_buffer.read()
 
-                dispatch_dict[str(self.user_id)].append(
-                    {str(_[0]): base64.encodebytes(file_read_buffer).decode()}
-                )
-            # replace all ' with " in the dict
-            dispatch_dict = str(dispatch_dict).replace("'", '"')
-            # convert the dict to json
-            self.redis.set_files(dispatch_dict)
+            dispatch_dict[str(self.user_id)].append(
+                {str(_[0]): base64.encodebytes(file_read_buffer).decode()}
+            )
+        dispatch_dict = str(dispatch_dict).replace("'", '"')
+        print(f"dispatch_dict: {dispatch_dict}")
+        self.redis.set_files(dispatch_dict)
+        time.wait(10)

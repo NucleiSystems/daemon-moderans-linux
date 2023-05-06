@@ -1,5 +1,6 @@
+import traceback
 from celery import Celery
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from functools import lru_cache
@@ -50,5 +51,3 @@ class Nuclei(FastAPI):
 
 
 app = Nuclei()
-
-app.configure_middlware()

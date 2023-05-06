@@ -41,7 +41,7 @@ def process_files(
         for file in files:
             _file = file.file
             _file = _file.read()
-            _filename = file.filename
+            _filename = file.filename.replace(" ", "_")
             future = executor.submit(
                 process_file, _file, _filename, ipfs_flag, identity_token, db
             )

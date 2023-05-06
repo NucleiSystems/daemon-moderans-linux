@@ -31,9 +31,7 @@ class CompressImage(CompressionImpl):
             elif mem_percent < 60:
                 level = 20
             else:
-                # Sub-case 2.2: More than 60% memory is free
                 level = 22
-
             compressor = zstd.ZstdCompressor(level=level)
             return compressor.compress(data)
         except Exception as e:

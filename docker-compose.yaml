@@ -11,6 +11,9 @@ networks:
   mq-network:
     driver: bridge
 
+  my-network:
+    driver: bridge
+
 services:
   postgres:
     image: postgres:latest
@@ -22,6 +25,8 @@ services:
       - data:/var/lib/postgresql
     networks:
       - traefik-hub
+      - my-network
+    restart: always
 
   redis:
     image: redis:latest
@@ -32,11 +37,14 @@ services:
       - target: 6379
     networks:
       - traefik-hub
+      - my-network
+    restart: always
 
   ipfs:
     networks:
       - traefik-hub
-    image: ipfs/go-ipfs:latest
+      - my-network
+    image: ipfs/kubo:latest
     command:
       - daemon
       - --migrate=true
@@ -44,6 +52,8 @@ services:
       - --routing=dhtclient
       - --enable-namesys-pubsub
     privileged: true
+    restart: always
+
     cap_add:
       - SYS_ADMIN
     security_opt:
@@ -59,11 +69,13 @@ services:
       - 8080:8080
       - 4001:4001
       - 5001:5001
+      - 5003:5003
 
     expose:
       - 8080:8080
       - 4001:4001
       - 5001:5001
+      - 5003:5003
 
     volumes:
       - ./data/ipfs:/ipfsdata
@@ -78,7 +90,7 @@ services:
     restart: "on-failure"
     command:
       - run
-      - --hub.token=941fad5b-2dc7-4e5d-bcaf-8795237c49c9
+      - --hub.token=8a9c146c-f628-4241-aea9-a047c7042319
       - --auth-server.advertise-url=http://hub-agent
       - --traefik.host=traefik
       - --traefik.tls.insecure=true
@@ -89,10 +101,12 @@ services:
     depends_on:
       - traefik
 
+  # Start Traefik with the latest version
   traefik:
     image: traefik:v2.9
     container_name: traefik
     command:
+      # Enable Hub communication (open the port 9900 and 9901 by default)
       - --experimental.hub=true
       - --hub.tls.insecure=true
       - --metrics.prometheus.addrouterslabels=true
@@ -111,7 +125,7 @@ services:
       - "8443:8000"
 
     environment:
-      - "DATABASE_URL=postgresql://postgres:postgrespw@postgres:5432/postgres"
+      - "DATABASE_URL=postgresql://postgres:postgrespw@postgres:5432"
       - "REDIS_URL=redis://redis:6379"
     depends_on:
       - postgres
@@ -119,8 +133,11 @@ services:
       - ipfs
     links:
       - postgres
-    restart: unless-stopped
+      - ipfs
+      - redis
+    restart: always
     volumes:
       - data:/app/data
     networks:
       - traefik-hub
+      - my-network

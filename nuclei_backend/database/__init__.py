@@ -3,6 +3,7 @@ import pathlib
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from os import environ
 
 path = pathlib.Path(__file__).parent.absolute()
 
@@ -13,7 +14,7 @@ SQLALCHEMY_DATABASE_URI3 = "postgresql://postgres:postgrespw@host.docker.interna
 
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URI2,
+    environ.get("DATABASE_URL"),
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
