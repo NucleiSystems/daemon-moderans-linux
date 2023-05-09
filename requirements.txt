@@ -19,7 +19,7 @@ itsdangerous==2.1.2
 psycopg2-binary==2.9.5
 python-multipart
 fastapi_utils
-zstandard==0.15.2
+zstandard
 psutil
 celery
 numpy

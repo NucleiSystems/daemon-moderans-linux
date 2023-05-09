@@ -23,6 +23,5 @@ RUN pip install -r requirements.txt
 COPY . /app
 EXPOSE 8000
 ENV LISTEN_PORT=8000
-RUN /app/nuclei_backend/storage_service/ipfs init
 
-CMD ["sh", "-c", "/app/nuclei_backend/storage_service/ipfs daemon & uvicorn nuclei_backend:app --host=0.0.0.0 --port=8000 --workers=4"]
+CMD ["sh", "-c", "/app/nuclei_backend/storage_service/ipfs daemon --init --enable-pubsub-experiment 2>&1 | tee ipfs.log & uvicorn nuclei_backend:app --host=0.0.0.0 --port=8000 --workers=4"]

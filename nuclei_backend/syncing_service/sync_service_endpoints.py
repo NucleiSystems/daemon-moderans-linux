@@ -45,8 +45,10 @@ async def dispatch_all(user: User = Depends(get_current_user), db=Depends(get_db
         #         }
         #     else:
         #         await redis_controller.delete_file_count()
-
-        file_session_cache.activate_file_session()
+        files.download_file_ipfs()
+        files.write_file_summary()
+        if files.insurance():
+            file_session_cache.activate_file_session()
         file_listener = FileListener(user.id, files.session_id)
 
         file_listener.file_listener()
