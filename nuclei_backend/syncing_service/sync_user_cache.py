@@ -21,7 +21,6 @@ class RedisController:
         return self.redis_connection.set(str(self.user), str(file))
 
     def get_files(self):
-        # get the list of files for a user
         return self.redis_connection.get(self.user)
 
     def clear_cache(self):
@@ -40,8 +39,8 @@ class RedisController:
             else 0
         )
 
-    async def delete_file_count(self):
-        await self.redis_connection.delete(f"{self.user}_count")
+    def delete_file_count(self):
+        return self.redis_connection.delete(f"{self.user}_count")
 
 
 class FileCacheEntry:
@@ -82,7 +81,6 @@ class FileCacheEntry:
 
     @classmethod
     def check_and_delete_files(cls):
-        """Check for and delete files that have been inactive for more than an hour."""
         for key in cls.redis_connection.scan_iter(match="file_session_cache_id&*"):
             status = cls.redis_connection.get(key)
             if status == b"notactive":
@@ -97,6 +95,7 @@ class FileCacheEntry:
                     pathlib.Path.unlink(
                         __file__
                     ).parent.absolute() / "FILE_PLAYING_FIELD" / f"{dir_id}"
+
             elif status == b"active":
                 dir_id = key.split("&")[1]
                 activated_time = cls.redis_connection.get(
@@ -147,7 +146,6 @@ class FileListener(SchedulerController):
 
     def file_listener(self):
         folder_path = self.path / str(self.session_id)
-        print("folder path", folder_path)
         time.sleep(2)
         files_index = open(f"{self.session_id}.internal.json", "r").read()
         data = json.loads(files_index)
@@ -163,6 +161,4 @@ class FileListener(SchedulerController):
                 {str(_[0]): base64.encodebytes(file_read_buffer).decode()}
             )
         dispatch_dict = str(dispatch_dict).replace("'", '"')
-        print(f"dispatch_dict: {dispatch_dict}")
         self.redis.set_files(dispatch_dict)
-        time.wait(10)

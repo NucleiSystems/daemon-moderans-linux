@@ -41,11 +41,11 @@ class UserDataExtraction:
     def __init__(self, user_id, db, cids: list):
         self.user_id = user_id
         self.session_id = uuid4()
-
         self.db = db
         self.user_data = get_user_cids(self.user_id, self.db)
         self.file_bytes = []
         self.cids = cids
+
         self.new_folder = os.path.abspath(
             os.path.join(
                 os.path.dirname(__file__), f"FILE_PLAYING_FIELD/{self.session_id}"
@@ -56,7 +56,6 @@ class UserDataExtraction:
         )
 
     def download_file_ipfs(self):
-        print("downloading")
         os.mkdir(self.new_folder)
         os.chdir(self.new_folder)
 
@@ -73,24 +72,17 @@ class UserDataExtraction:
                             "--progress=true",
                         ]
                     )
-                    print(
-                        f"Started downloading {cid.file_name} ({cid.file_cid}) - Session ID: {self.session_id}"
-                    )
+
                     time.sleep(5)
                     if os.path.isfile(cid.file_name):
-                        print(f"Successfully downloaded {cid.file_name}")
                         break
                 except Exception as e:
-                    print(f"Error while downloading {cid.file_name}: {e}")
                     raise e
 
         self.write_file_summary()
 
         while not self.insurance():
-            print("Some files are still being downloaded, waiting for completion...")
             time.sleep(5)
-
-    print("All files downloaded successfully!")
 
     def write_file_summary(self):
         with contextlib.suppress(PermissionError):
@@ -115,11 +107,11 @@ class UserDataExtraction:
             del _bytes
         return True
 
-    async def cleanup(self):
+    def cleanup(self):
         with contextlib.suppress(PermissionError):
             os.chdir(pathlib.Path(self.new_folder).parent)
 
-            await shutil.rmtree(
+            shutil.rmtree(
                 pathlib.Path(self.new_folder),
                 ignore_errors=False,
             )
