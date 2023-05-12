@@ -1,9 +1,10 @@
-from concurrent.futures import ProcessPoolExecutor
 import os
 import pathlib
+from concurrent.futures import ProcessPoolExecutor
+
+import numpy as np
 import psutil
 import zstandard as zstd
-import numpy as np
 
 from ..CompressionBase import CompressionImpl
 

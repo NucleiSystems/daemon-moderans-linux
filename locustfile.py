@@ -1,7 +1,8 @@
-from locust import HttpUser, TaskSet, task
-from faker import Faker
 import urllib.parse
 import uuid
+
+from faker import Faker
+from locust import HttpUser, TaskSet, task
 
 
 class UserBehavior(TaskSet):

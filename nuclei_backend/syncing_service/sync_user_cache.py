@@ -1,46 +1,59 @@
-import json
-import shutil
-import redis
-import time
-import pathlib
-from apscheduler.schedulers.background import BackgroundScheduler
-from functools import lru_cache
-from .scheduler_config import SchConfig
-from os import environ
+import asyncio
 import base64
+import pathlib
+import pickle
+import time
+from functools import lru_cache
+from os import environ
+from pathlib import Path
+
+import redis
+from apscheduler.schedulers.background import BackgroundScheduler
+
+from .scheduler_config import SchConfig
 
 
 class RedisController:
     def __init__(self, user):
+        self.user = user
+
+    def __enter__(self):
         self.redis_connection = redis.Redis().from_url(
             url=environ.get("REDIS_URL"), decode_responses=True, db=0
         )
-        self.user = user
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.redis_connection.close()
 
     def set_files(self, file: list[dict[str, bytes]]):
-        return self.redis_connection.set(str(self.user), str(file))
+        with self:
+            return self.redis_connection.set(str(self.user), str(file))
 
     def get_files(self):
-        return self.redis_connection.get(self.user)
+        with self:
+            return self.redis_connection.get(self.user)
 
     def clear_cache(self):
-        return self.redis_connection.delete(self.user)
+        with self:
+            return self.redis_connection.delete(self.user)
 
     def check_files(self):
-        return self.redis_connection.exists(self.user)
+        with self:
+            return self.redis_connection.exists(self.user)
 
     def set_file_count(self, count: int):
-        return self.redis_connection.set(f"{self.user}_count", count)
+        with self:
+            return self.redis_connection.set(f"{self.user}_count", count)
 
     def get_file_count(self):
-        return (
-            int(self.redis_connection.get(f"{self.user}_count"))
-            if self.redis_connection.exists(f"{self.user}_count")
-            else 0
-        )
+        with self:
+            count = self.redis_connection.get(f"{self.user}_count")
+            return int(count) if count is not None else 0
 
     def delete_file_count(self):
-        return self.redis_connection.delete(f"{self.user}_count")
+        with self:
+            return self.redis_connection.delete(f"{self.user}_count")
 
 
 class FileCacheEntry:
@@ -49,65 +62,68 @@ class FileCacheEntry:
     def __init__(self, dir_id):
         """Create a new file cache entry for the specified directory."""
         self.dir_id = dir_id
-        self.redis_connection = redis.Redis().from_url(
-            url=environ.get("REDIS_URL"), decode_responses=True, db=1
-        )
+        self.redis_connection = None
 
-    def activate_file_session(self):
+    def _connect_to_redis(self):
+        """Connect to Redis."""
+        if self.redis_connection is None:
+            self.redis_connection = redis.Redis().from_url(
+                url=environ.get("REDIS_URL"), decode_responses=True, db=1
+            )
+
+    def set_file_session_active(self) -> str:
         """Activate the file session for this cache entry."""
-        self.redis_connection.set(f"file_session_cache&{str(self.dir_id)}", "active")
+        self._connect_to_redis()
+        self.redis_connection.set(f"file_session_cache_{self.dir_id}", "active")
         self.redis_connection.set(
-            f"file_session_cache_activetime&{str(self.dir_id)}", f"{time.ctime()}"
+            f"file_session_cache_activetime_{self.dir_id}", f"{time.ctime()}"
         )
         return "activated"
 
-    def deactivate_file_session(self):
+    def set_file_session_inactive(self) -> str:
         """Deactivate the file session for this cache entry."""
+        self._connect_to_redis()
+        self.redis_connection.set(f"file_session_cache_{self.dir_id}", "notactive")
         self.redis_connection.set(
-            f"file_session_cache_id&{str(self.dir_id)}", "notactive"
-        )
-        self.redis_connection.set(
-            f"file_session_cache_deactivetime&{str(self.dir_id)}", f"{time.ctime()}"
+            f"file_session_cache_deactivetime_{self.dir_id}", f"{time.ctime()}"
         )
         return "deactivated"
 
-    def _deactivate_file_session(
-        self, cache_id_key, status_value, cache_time_key, time_value
-    ):
-        """Helper method to deactivate a file session."""
-        self.redis_connection.set(f"{cache_id_key}{str(self.dir_id)}", status_value)
-        self.redis_connection.set(f"{cache_time_key}{str(self.dir_id)}", time_value)
-        return "deactivated"
+    def _delete_file(self, file_path):
+        """Delete the file at the given path."""
+        file_path.unlink()
 
-    @classmethod
-    def check_and_delete_files(cls):
-        for key in cls.redis_connection.scan_iter(match="file_session_cache_id&*"):
-            status = cls.redis_connection.get(key)
-            if status == b"notactive":
-                dir_id = key.split("&")[1]
-                deactivated_time = cls.redis_connection.get(
-                    f"file_session_cache_deactivetime&{dir_id}"
+    def check_and_delete_files(self):
+        self._connect_to_redis()
+        for key in self.redis_connection.scan_iter(match="file_session_cache_*"):
+            status = self.redis_connection.get(key)
+            if status == "notactive":
+                dir_id = key.split("_")[3]
+                deactivated_time = self.redis_connection.get(
+                    f"file_session_cache_deactivetime_{dir_id}"
                 )
                 if (
                     time.time() - time.mktime(time.strptime(deactivated_time, "%c"))
                     >= 3600
                 ):
-                    pathlib.Path.unlink(
-                        __file__
-                    ).parent.absolute() / "FILE_PLAYING_FIELD" / f"{dir_id}"
+                    file_path = (
+                        pathlib.Path(__file__).parent / "FILE_PLAYING_FIELD" / dir_id
+                    )
+                    self._delete_file(file_path)
 
-            elif status == b"active":
-                dir_id = key.split("&")[1]
-                activated_time = cls.redis_connection.get(
-                    f"file_session_cache_activetime&{dir_id}"
+            elif status == "active":
+                dir_id = key.split("_")[3]
+                activated_time = self.redis_connection.get(
+                    f"file_session_cache_activetime_{dir_id}"
                 )
                 if (
                     time.time() - time.mktime(time.strptime(activated_time, "%c"))
                     >= 3600
                 ):
-                    pathlib.Path.unlink(
-                        __file__
-                    ).parent.absolute() / "FILE_PLAYING_FIELD" / f"{dir_id}"
+                    file_path = (
+                        pathlib.Path(__file__).parent / "FILE_PLAYING_FIELD" / dir_id
+                    )
+                    self._delete_file(file_path)
 
 
 class SchedulerController:
@@ -143,22 +159,25 @@ class FileListener(SchedulerController):
         self.user_id = user_id
         self.redis = RedisController(user_id)
         self.session_id = session_id
+        self.path = Path("path/to/files")
 
-    def file_listener(self):
-        folder_path = self.path / str(self.session_id)
-        time.sleep(2)
-        files_index = open(f"{self.session_id}.internal.json", "r").read()
-        data = json.loads(files_index)
-        data = dict(data)
-        data = data.items()
+    async def file_listener(self):
+        self.path / str(self.session_id)
+        await asyncio.sleep(2)  # Use asyncio.sleep instead of time.sleep
+
+        with open(f"{self.session_id}.internal.pickle", "rb") as f:
+            data = pickle.load(f)
+
         dispatch_dict = {str(self.user_id): []}
+        for file_path, file_size in data.items():
+            with open(file_path, "rb") as f:
+                while True:
+                    if chunk := f.read(1024 * 1024):
+                        dispatch_dict[str(self.user_id)].append(
+                            {str(file_path): base64.b64encode(chunk).decode()}
+                        )
 
-        for _ in data:
-            with open(_[0], "rb") as file_read_buffer:
-                file_read_buffer = file_read_buffer.read()
-
-            dispatch_dict[str(self.user_id)].append(
-                {str(_[0]): base64.encodebytes(file_read_buffer).decode()}
-            )
+                    else:
+                        break
         dispatch_dict = str(dispatch_dict).replace("'", '"')
         self.redis.set_files(dispatch_dict)

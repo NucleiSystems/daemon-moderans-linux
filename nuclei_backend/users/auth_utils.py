@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone
-
 from typing import Dict, Literal, Union
 
 # The class is a configuration class that contains the secret key, the algorithm, and the access token  # noqa: E501

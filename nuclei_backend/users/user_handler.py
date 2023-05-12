@@ -10,7 +10,7 @@ def create_user(
     user: user_handler_utils.user_schemas.UserCreate,
     db: user_handler_utils.Session = Depends(user_handler_utils.get_db),
 ):
-    if db_user := user_handler_utils.get_user_by_username(
+    if user_handler_utils.get_user_by_username(
         db, username=user.username
     ):  # noqa: F841
         raise HTTPException(
